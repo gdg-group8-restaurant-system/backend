@@ -1,12 +1,30 @@
+import mongoose from "mongoose";
 import { Favorite } from "../models/Favorite.js";
-
+import { MenuItem } from "../models/menu.js";
 export const getFavorites = async (req, res, next) => {
-  // code
+  try {
+    const userId = req.user.id;
+    const favorites = await Favorite.find({ userId: userId }).populate("menuItemId");
+
+    res.status(200).json({
+      success: true,
+    //   count: favorites.length,
+      data: favorites,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
+
 export const addFavorite = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { menuItemId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(menuItemId)) {
+      const error = new Error("Invalid Item Id");
+      error.statusCode = 400;
+      throw error;
+    }
     const favoriteItem = await Favorite.findOne({
       userId: userId,
       menuItemId: menuItemId,
@@ -18,7 +36,7 @@ export const addFavorite = async (req, res, next) => {
         message: "Item removed from favorite",
       });
     }
-    const newFavorite = await Favorite.create({
+    await Favorite.create({
       userId: userId,
       menuItemId: menuItemId,
     });
@@ -30,10 +48,16 @@ export const addFavorite = async (req, res, next) => {
     next(err);
   }
 };
+
 export const removeFavorite = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const {menuItemId} = req.params;
+    const { menuItemId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(menuItemId)) {
+      const error = new Error("Invalid Item Id");
+      error.statusCode = 400;
+      throw error;
+    }
     const favoriteItem = await Favorite.findOne({
       userId: userId,
       menuItemId: menuItemId,
@@ -43,11 +67,11 @@ export const removeFavorite = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    await Favorite.findOneAndDelete({ _id:favoriteItem._id});
+    await Favorite.findOneAndDelete({ _id: favoriteItem._id });
     res.status(200).json({
-        success:true,
-        message:'Item removed from favorite'
-    })
+      success: true,
+      message: "Item removed from favorite",
+    });
   } catch (err) {
     next(err);
   }
