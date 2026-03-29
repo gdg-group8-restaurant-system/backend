@@ -1,9 +1,5 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-
-// Protects routes — verifies the JWT access token
-// Client must send:  Authorization: Bearer <accessToken>
-// Usage:  router.get('/cart', authMiddleware, cartController.getCart)
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 const authMiddleware = async (req, res, next) => {
   let token;
@@ -49,4 +45,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+export default authMiddleware;

@@ -1,7 +1,7 @@
-const {
+import {
   isValidStudentId,
   getStudentIdError,
-} = require("../utils/studentIdValidator");
+} from "../utils/studentIdValidator.js";
 
 const studentVerify = (req, res, next) => {
   const { studentId } = req.body;
@@ -23,4 +23,4 @@ const studentVerify = (req, res, next) => {
   next();
 };
 
-module.exports = studentVerify;
+export default studentVerify;

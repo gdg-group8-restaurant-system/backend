@@ -1,13 +1,13 @@
-const express = require("express");
-const {
+import express from "express";
+import {
   register,
   login,
   logout,
   refreshAccessToken,
   getMe,
-} = require("../controllers/authController");
-const authMiddleware = require("../middleware/authMiddleware");
-const studentVerify = require("../middleware/studentVerify");
+} from "../controllers/authController.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+import studentVerify from "../middleware/studentVerify.js";
 
 const router = express.Router();
 
@@ -17,7 +17,7 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.post("/refresh", refreshAccessToken);
 
-// Protected — must send Authorization: Bearer <accessToken>
+// Protected
 router.get("/me", authMiddleware, getMe);
 
-module.exports = router;
+export default router;

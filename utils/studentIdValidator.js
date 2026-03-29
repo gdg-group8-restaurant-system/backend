@@ -14,4 +14,4 @@ const getStudentIdError = () => {
   return "Invalid Student ID format. Expected format: ETS1234/16";
 };
 
-module.exports = { isValidStudentId, getStudentIdError };
+export { isValidStudentId, getStudentIdError };

@@ -1,10 +1,10 @@
-const User = require("../models/User");
-const {
+import User from "../models/User.js";
+import {
   generateTokens,
   attachRefreshTokenCookie,
-} = require("../utils/generateToken");
+} from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
 
-// Build safe user response — never expose password or refreshToken
 const buildUserResponse = (user) => ({
   id: user._id,
   name: user.name,
@@ -20,7 +20,6 @@ const register = async (req, res) => {
   try {
     const { name, phoneNumber, studentId, password } = req.body;
 
-    // Check all fields are present
     if (!name || !phoneNumber || !studentId || !password) {
       return res.status(400).json({
         success: false,
@@ -36,7 +35,6 @@ const register = async (req, res) => {
       });
     }
 
-    // Check for duplicate phone number
     const existingPhone = await User.findOne({
       phoneNumber: phoneNumber.trim(),
     });
@@ -47,7 +45,6 @@ const register = async (req, res) => {
       });
     }
 
-    // Check for duplicate Student ID
     const existingStudentId = await User.findOne({
       studentId: studentId.trim().toUpperCase(),
     });
@@ -58,23 +55,19 @@ const register = async (req, res) => {
       });
     }
 
-    // Create user — password is hashed automatically by the model pre-save hook
     const user = await User.create({
       name: name.trim(),
       phoneNumber: phoneNumber.trim(),
       studentId: studentId.trim().toUpperCase(),
       password,
-      role: "student", // always student on self-registration
+      role: "student",
     });
 
-    // Generate access + refresh tokens
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
 
-    // Save refresh token to DB
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
-    // Send refresh token as httpOnly cookie
     attachRefreshTokenCookie(res, refreshToken);
 
     res.status(201).json({
@@ -111,7 +104,6 @@ const login = async (req, res) => {
       });
     }
 
-    // Find user — include password for comparison
     const user = await User.findOne({ phoneNumber: phoneNumber.trim() }).select(
       "+password +refreshToken",
     );
@@ -182,7 +174,6 @@ const logout = async (req, res) => {
 // ── REFRESH TOKEN ─────────────────────────────────────────────────────────────
 const refreshAccessToken = async (req, res) => {
   try {
-    const jwt = require("jsonwebtoken");
     const token = req.cookies?.refreshToken;
 
     if (!token) {
@@ -231,4 +222,4 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { register, login, logout, refreshAccessToken, getMe };
+export { register, login, logout, refreshAccessToken, getMe };
