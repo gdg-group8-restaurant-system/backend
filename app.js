@@ -5,11 +5,17 @@ import cors from "cors";
 // Import routes
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import authRoutes from "./routes/authRoutes.js"; // ← ADD THIS
 
 const app = express();
 
 // Global middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    credentials: true, // ← IMPORTANT: allows cookies to be sent (needed for refresh token)
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -21,7 +27,8 @@ app.get("/", (req, res) => {
   });
 });
 
-// ROUTES 
+// ROUTES
+app.use("/api/auth", authRoutes); // ← ADD THIS
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 
