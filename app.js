@@ -2,6 +2,10 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
+// Import routes
+import cartRoutes from "./routes/cartRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+
 const app = express();
 
 // Global middleware
@@ -16,6 +20,10 @@ app.get("/", (req, res) => {
     status: "ok",
   });
 });
+
+// ROUTES 
+app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
 
 // 404 handler
 app.use((req, res) => {
