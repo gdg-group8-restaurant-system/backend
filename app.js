@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import favoriteRouter from "./routers/favoriteRoutes.js";
 
 const app = express();
 
@@ -16,6 +17,9 @@ app.get("/", (req, res) => {
     status: "ok",
   });
 });
+
+// Favorite Router
+app.use('/api/favorites',favoriteRouter)
 
 // 404 handler
 app.use((req, res) => {
