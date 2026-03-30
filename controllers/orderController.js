@@ -1,8 +1,11 @@
+import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import { clearCart } from "./cartController.js";
 
 const statusFlow = ["pending", "preparing", "ready", "completed"];
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // POST /api/orders
 export const placeOrder = async (req, res) => {
@@ -14,7 +17,7 @@ export const placeOrder = async (req, res) => {
     }
 
     const cart = await Cart.findOne({ userId: user.id }).populate(
-      "items.menuItemId"
+      "items.menuItemId",
     );
 
     if (!cart || cart.items.length === 0) {
@@ -22,15 +25,15 @@ export const placeOrder = async (req, res) => {
     }
 
     const orderItems = cart.items.map((item) => ({
-      name: item.menuItemId.name,
-      price: item.menuItemId.price,
+      name: item.menuItemId?.name,
+      price: item.menuItemId?.price,
       quantity: item.quantity,
       specialInstructions: item.specialInstructions,
     }));
 
     const totalPrice = orderItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
-      0
+      0,
     );
 
     const order = new Order({
@@ -40,8 +43,6 @@ export const placeOrder = async (req, res) => {
     });
 
     await order.save();
-
-    // Clear cart only after successful order creation
     await clearCart(user.id);
 
     res.status(201).json(order);
@@ -66,11 +67,7 @@ export const getMyOrders = async (req, res) => {
 // GET /api/orders (Admin)
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().populate(
-      "userId",
-      "name phoneNumber"
-    );
-
+    const orders = await Order.find().populate("userId", "name phoneNumber");
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch all orders" });
@@ -82,18 +79,29 @@ export const updateStatus = async (req, res) => {
   const { status } = req.body;
 
   try {
-    const order = await Order.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid order id" });
+    }
+
+    if (!statusFlow.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
     const currentIndex = statusFlow.indexOf(order.status);
     const newIndex = statusFlow.indexOf(status);
 
     if (newIndex <= currentIndex) {
-      return res.status(400).json({
-        message: "Invalid status transition",
-      });
+      return res.status(400).json({ message: "Invalid status transition" });
     }
 
-    order.status = status;
+    order.status = status
     await order.save();
 
     res.json(order);
