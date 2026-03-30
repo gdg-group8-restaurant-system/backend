@@ -4,11 +4,13 @@ import { MenuItem } from "../models/menu.js";
 export const getFavorites = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const favorites = await Favorite.find({ userId: userId }).populate("menuItemId");
+    const favorites = await Favorite.find({ userId: userId }).populate(
+      "menuItemId",
+    );
 
     res.status(200).json({
       success: true,
-    //   count: favorites.length,
+      count: favorites.length,
       data: favorites,
     });
   } catch (err) {
@@ -16,7 +18,7 @@ export const getFavorites = async (req, res, next) => {
   }
 };
 
-export const addFavorite = async (req, res, next) => {
+export const toggleFavorite = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { menuItemId } = req.params;
