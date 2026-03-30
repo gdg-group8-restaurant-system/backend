@@ -14,7 +14,10 @@ export const getFavorites = async (req, res, next) => {
       data: favorites,
     });
   } catch (err) {
-    next(err);
+    return res.status(500).json({
+      success:false,
+      message:err.message
+    })
   }
 };
 
@@ -47,7 +50,10 @@ export const toggleFavorite = async (req, res, next) => {
       message: "Item added to favorite.",
     });
   } catch (err) {
-    next(err);
+    return res.status(err.statusCode || 500).json({
+    success:false,
+    message:err.message
+  })
   }
 };
 
@@ -75,6 +81,9 @@ export const removeFavorite = async (req, res, next) => {
       message: "Item removed from favorite",
     });
   } catch (err) {
-    next(err);
+  return res.status(err.statusCode || 500).json({
+    success:false,
+    message:err.message
+  })
   }
 };

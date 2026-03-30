@@ -1,6 +1,6 @@
 import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
-// import { clearCart } from "./cartController.js";
+import { clearCart } from "./cartController.js";
 
 const statusFlow = ["pending", "preparing", "ready", "completed"];
 
@@ -42,7 +42,7 @@ export const placeOrder = async (req, res) => {
     await order.save();
 
     // Clear cart only after successful order creation
-    // await clearCart(user.id);
+    await clearCart(user.id);
 
     res.status(201).json(order);
   } catch (error) {

@@ -30,8 +30,8 @@ app.get("/", (req, res) => {
 
 // ROUTES
 app.use("/api/auth", authRoutes); // ← ADD THIS
-// app.use("/api/cart", cartRoutes);
-// app.use("/api/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/favorites", favoriteRouter)
 
 // 404 handler
