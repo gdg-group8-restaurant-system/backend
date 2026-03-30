@@ -1,3 +1,8 @@
+test.rest
+menuitem.js
+models/
+    menu.js
+
 # Logs
 logs
 *.log

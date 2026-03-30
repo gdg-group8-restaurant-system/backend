@@ -1,10 +1,10 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import cors from "cors";
+import cors from "cors"
 
 // Import routes
-import cartRoutes from "./routes/cartRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
+// import cartRoutes from "./routes/cartRoutes.js";
+// import orderRoutes from "./routes/orderRoutes.js";
 import authRoutes from "./routes/authRoutes.js"; // ← ADD THIS
 import menuRoutes from "./routes/menuRoutes.js";
 
@@ -33,6 +33,7 @@ app.use("/api/auth", authRoutes); // ← ADD THIS
 app.use("/api/menu", menuRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/favorites", favoriteRouter)
 
 // 404 handler
 app.use((req, res) => {
