@@ -18,7 +18,16 @@ const buildUserResponse = (user) => ({
 // ── REGISTER ──────────────────────────────────────────────────────────────────
 const register = async (req, res) => {
   try {
-    const { name, phoneNumber, studentId, password } = req.body;
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const { name, phoneNumber, studentId, password } = body;
+
+    if (Object.keys(body).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid or missing JSON body. Set Content-Type to application/json.",
+      });
+    }
 
     if (!name || !phoneNumber || !studentId || !password) {
       return res.status(400).json({
@@ -28,6 +37,23 @@ const register = async (req, res) => {
       });
     }
 
+    if (
+      typeof name !== "string" ||
+      typeof phoneNumber !== "string" ||
+      typeof studentId !== "string" ||
+      typeof password !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid data types. name, phoneNumber, studentId, and password must be strings.",
+      });
+    }
+
+    const cleanName = name.trim();
+    const cleanPhoneNumber = phoneNumber.trim();
+    const cleanStudentId = studentId.trim().toUpperCase();
+
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
@@ -35,9 +61,7 @@ const register = async (req, res) => {
       });
     }
 
-    const existingPhone = await User.findOne({
-      phoneNumber: phoneNumber.trim(),
-    });
+    const existingPhone = await User.findOne({ phoneNumber: cleanPhoneNumber });
     if (existingPhone) {
       return res.status(400).json({
         success: false,
@@ -45,9 +69,7 @@ const register = async (req, res) => {
       });
     }
 
-    const existingStudentId = await User.findOne({
-      studentId: studentId.trim().toUpperCase(),
-    });
+    const existingStudentId = await User.findOne({ studentId: cleanStudentId });
     if (existingStudentId) {
       return res.status(400).json({
         success: false,
@@ -56,9 +78,9 @@ const register = async (req, res) => {
     }
 
     const user = await User.create({
-      name: name.trim(),
-      phoneNumber: phoneNumber.trim(),
-      studentId: studentId.trim().toUpperCase(),
+      name: cleanName,
+      phoneNumber: cleanPhoneNumber,
+      studentId: cleanStudentId,
       password,
       role: "student",
     });
@@ -79,7 +101,9 @@ const register = async (req, res) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
+      const keyPattern = error.keyPattern || {};
+      const keyValue = error.keyValue || {};
+      const field = Object.keys(keyPattern)[0] || Object.keys(keyValue)[0];
       return res.status(400).json({
         success: false,
         message: `This ${field === "phoneNumber" ? "phone number" : "Student ID"} is already registered.`,
@@ -95,7 +119,16 @@ const register = async (req, res) => {
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
 const login = async (req, res) => {
   try {
-    const { phoneNumber, password } = req.body;
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const { phoneNumber, password } = body;
+
+    if (Object.keys(body).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid or missing JSON body. Set Content-Type to application/json.",
+      });
+    }
 
     if (!phoneNumber || !password) {
       return res.status(400).json({
@@ -104,7 +137,17 @@ const login = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ phoneNumber: phoneNumber.trim() }).select(
+    if (typeof phoneNumber !== "string" || typeof password !== "string") {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid data types. phoneNumber and password must be strings.",
+      });
+    }
+
+    const cleanPhoneNumber = phoneNumber.trim();
+
+    const user = await User.findOne({ phoneNumber: cleanPhoneNumber }).select(
       "+password +refreshToken",
     );
 
