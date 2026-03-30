@@ -4,12 +4,12 @@ import {
   getFavorites,
   removeFavorite,
 } from "../controllers/favoriteController.js";
-import { fakeAuthMiddleware } from "../middlewares/authmiddleware.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const favoriteRouter = express.Router();
 
-favoriteRouter.get("/", fakeAuthMiddleware, getFavorites);
-(favoriteRouter.post("/:menuItemId", fakeAuthMiddleware, addFavorite),
-  favoriteRouter.delete("/:menuItemId", fakeAuthMiddleware, removeFavorite));
+favoriteRouter.get("/", authMiddleware, getFavorites);
+(favoriteRouter.post("/:menuItemId", authMiddleware, addFavorite),
+  favoriteRouter.delete("/:menuItemId", authMiddleware, removeFavorite));
 
 export default favoriteRouter;
