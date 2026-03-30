@@ -1,12 +1,13 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import cors from "cors"
+import cors from "cors";
 
 // Import routes
-// import cartRoutes from "./routes/cartRoutes.js";
-// import orderRoutes from "./routes/orderRoutes.js";
-import authRoutes from "./routes/authRoutes.js"; // ← ADD THIS
+import authRoutes from "./routes/authRoutes.js";
 import menuRoutes from "./routes/menuRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import favoriteRouter from "./routes/favoriteRoutes.js";
 
 const app = express();
 
@@ -14,7 +15,7 @@ const app = express();
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:3000",
-    credentials: true, // ← IMPORTANT: allows cookies to be sent (needed for refresh token)
+    credentials: true,
   }),
 );
 app.use(express.json());
@@ -29,11 +30,11 @@ app.get("/", (req, res) => {
 });
 
 // ROUTES
-app.use("/api/auth", authRoutes); // ← ADD THIS
+app.use("/api/auth", authRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/favorites", favoriteRouter)
+app.use("/api/favorites", favoriteRouter);
 
 // 404 handler
 app.use((req, res) => {
