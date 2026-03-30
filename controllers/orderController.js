@@ -101,7 +101,7 @@ export const updateStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status transition" });
     }
 
-    order.status = status;
+    order.status = status
     await order.save();
 
     res.json(order);
