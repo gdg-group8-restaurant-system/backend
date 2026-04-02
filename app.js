@@ -8,6 +8,8 @@ import menuRoutes from "./routes/menuRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import favoriteRouter from "./routes/favoriteRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -28,14 +30,22 @@ app.get("/", (req, res) => {
     status: "ok",
   });
 });
-
+// API specific health check
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "API is healthy and online.",
+    timestamp: new Date().toISOString()
+  });
+});
 // ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/favorites", favoriteRouter);
-
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/admin", adminRoutes);
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found." });

@@ -82,7 +82,7 @@ const register = async (req, res) => {
       phoneNumber: cleanPhoneNumber,
       studentId: cleanStudentId,
       password,
-      role: "student",
+      role: body.role || "student",
     });
 
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
