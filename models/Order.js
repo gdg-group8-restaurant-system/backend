@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema({
+  menuItemId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "MenuItem",
+  },
   name: String,
   price: Number,
   quantity: Number,

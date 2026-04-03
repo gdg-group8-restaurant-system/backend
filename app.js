@@ -16,7 +16,7 @@ const app = express();
 // Global middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
@@ -35,7 +35,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "API is healthy and online.",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 // ROUTES

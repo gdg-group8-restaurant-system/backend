@@ -4,30 +4,42 @@ import MenuItem from "../models/MenuItem.js";
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// Internal helper used by order placement
 export const clearCart = async (userId) => {
   await Cart.findOneAndUpdate(
     { userId },
     { items: [] },
-    { new: true, upsert: true },
+    { returnDocument: "after", upsert: true },
   );
 };
 
 // GET /api/cart
 export const getCart = async (req, res) => {
   try {
-    let cart = await Cart.findOne({ userId: req.user.id }).populate(
+    let cart = await Cart.findOne({ userId: req.user._id }).populate(
       "items.menuItemId",
+      "name price image isAvailable",
     );
 
     if (!cart) {
-      cart = await Cart.create({ userId: req.user.id, items: [] });
-      cart = await Cart.findById(cart._id).populate("items.menuItemId");
+      cart = await Cart.create({ userId: req.user._id, items: [] });
     }
 
-    res.json(cart);
+    const total = (cart.items || []).reduce((sum, item) => {
+      const price = item.menuItemId?.price || 0;
+      return sum + price * item.quantity;
+    }, 0);
+
+    res.status(200).json({
+      success: true,
+      cart: {
+        _id: cart._id,
+        items: cart.items,
+        total: parseFloat(total.toFixed(2)),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch cart" });
+    console.error("getCart error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch cart." });
   }
 };
 
@@ -37,24 +49,28 @@ export const addToCart = async (req, res) => {
     const { menuItemId, quantity, specialInstructions } = req.body;
 
     if (!menuItemId || !isValidObjectId(menuItemId)) {
-      return res.status(400).json({ message: "Valid menuItemId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Valid menuItemId is required." });
     }
 
     const qty = Number(quantity ?? 1);
     if (!Number.isInteger(qty) || qty < 1) {
       return res
         .status(400)
-        .json({ message: "Quantity must be an integer >= 1" });
+        .json({ success: false, message: "Quantity must be an integer >= 1." });
     }
 
     const menuItem = await MenuItem.findById(menuItemId);
     if (!menuItem) {
-      return res.status(404).json({ message: "Menu item not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Menu item not found." });
     }
 
-    let cart = await Cart.findOne({ userId: req.user.id });
+    let cart = await Cart.findOne({ userId: req.user._id });
     if (!cart) {
-      cart = await Cart.create({ userId: req.user.id, items: [] });
+      cart = await Cart.create({ userId: req.user._id, items: [] });
     }
 
     const existingItem = cart.items.find(
@@ -62,7 +78,7 @@ export const addToCart = async (req, res) => {
     );
 
     if (existingItem) {
-      existingItem.quantity = qty;
+      existingItem.quantity += qty; // ✅ ADD to quantity, not replace
       if (typeof specialInstructions === "string") {
         existingItem.specialInstructions = specialInstructions.trim();
       }
@@ -78,12 +94,18 @@ export const addToCart = async (req, res) => {
     }
 
     await cart.save();
-    const populatedCart = await Cart.findById(cart._id).populate(
-      "items.menuItemId",
-    );
-    res.status(200).json(populatedCart);
+    await cart.populate("items.menuItemId", "name price image isAvailable");
+
+    res.status(200).json({
+      success: true,
+      message: "Item added to cart.",
+      cart,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to add item to cart" });
+    console.error("addToCart error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to add item to cart." });
   }
 };
 
@@ -94,46 +116,59 @@ export const updateCartItem = async (req, res) => {
     const { quantity, specialInstructions } = req.body;
 
     if (!isValidObjectId(itemId)) {
-      return res.status(400).json({ message: "Invalid cart item id" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid cart item id." });
     }
 
-    const cart = await Cart.findOne({ userId: req.user.id });
-
+    const cart = await Cart.findOne({ userId: req.user._id });
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Cart not found." });
     }
 
     const targetItem = cart.items.id(itemId);
     if (!targetItem) {
-      return res.status(404).json({ message: "Cart item not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Cart item not found." });
     }
 
     if (quantity !== undefined) {
       const qty = Number(quantity);
       if (!Number.isInteger(qty) || qty < 1) {
-        return res
-          .status(400)
-          .json({ message: "Quantity must be an integer >= 1" });
+        return res.status(400).json({
+          success: false,
+          message: "Quantity must be an integer >= 1.",
+        });
       }
       targetItem.quantity = qty;
     }
 
     if (specialInstructions !== undefined) {
       if (typeof specialInstructions !== "string") {
-        return res
-          .status(400)
-          .json({ message: "specialInstructions must be a string" });
+        return res.status(400).json({
+          success: false,
+          message: "specialInstructions must be a string.",
+        });
       }
       targetItem.specialInstructions = specialInstructions.trim();
     }
 
     await cart.save();
-    const populatedCart = await Cart.findById(cart._id).populate(
-      "items.menuItemId",
-    );
-    res.json(populatedCart);
+    await cart.populate("items.menuItemId", "name price image isAvailable");
+
+    res.status(200).json({
+      success: true,
+      message: "Cart item updated.",
+      cart,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update cart item" });
+    console.error("updateCartItem error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to update cart item." });
   }
 };
 
@@ -143,28 +178,36 @@ export const removeItem = async (req, res) => {
     const { itemId } = req.params;
 
     if (!isValidObjectId(itemId)) {
-      return res.status(400).json({ message: "Invalid cart item id" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid cart item id." });
     }
 
-    const cart = await Cart.findOne({ userId: req.user.id });
-
+    const cart = await Cart.findOne({ userId: req.user._id });
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Cart not found." });
     }
 
     const targetItem = cart.items.id(itemId);
     if (!targetItem) {
-      return res.status(404).json({ message: "Cart item not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Item not found in cart." });
     }
 
     targetItem.deleteOne();
     await cart.save();
+    await cart.populate("items.menuItemId", "name price image isAvailable");
 
-    const populatedCart = await Cart.findById(cart._id).populate(
-      "items.menuItemId",
-    );
-    res.json(populatedCart);
+    res.status(200).json({
+      success: true,
+      message: "Item removed from cart.",
+      cart,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to remove item from cart" });
+    console.error("removeItem error:", error);
+    res.status(500).json({ success: false, message: "Failed to remove item." });
   }
 };

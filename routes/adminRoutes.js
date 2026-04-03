@@ -1,5 +1,10 @@
 import express from "express";
-import { getAllOrders, getStats, verifyUser } from "../controllers/adminController.js";
+import {
+  getAllOrders,
+  getAllReviews,
+  getStats,
+  verifyUser,
+} from "../controllers/adminController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
 
@@ -13,6 +18,9 @@ router.get("/orders", getAllOrders);
 
 // GET /api/admin/stats
 router.get("/stats", getStats);
+
+// GET /api/admin/reviews
+router.get("/reviews", getAllReviews);
 
 // PATCH /api/admin/users/:id/verify
 router.patch("/users/:id/verify", verifyUser);
