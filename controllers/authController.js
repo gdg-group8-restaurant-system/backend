@@ -15,7 +15,6 @@ const buildUserResponse = (user) => ({
   createdAt: user.createdAt,
 });
 
-// ── REGISTER ──────────────────────────────────────────────────────────────────
 const register = async (req, res) => {
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
@@ -82,7 +81,7 @@ const register = async (req, res) => {
       phoneNumber: cleanPhoneNumber,
       studentId: cleanStudentId,
       password,
-      role: body.role || "student",
+      role: "student",
     });
 
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
@@ -101,9 +100,7 @@ const register = async (req, res) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      const keyPattern = error.keyPattern || {};
-      const keyValue = error.keyValue || {};
-      const field = Object.keys(keyPattern)[0] || Object.keys(keyValue)[0];
+      const field = Object.keys(error.keyPattern || {})[0];
       return res.status(400).json({
         success: false,
         message: `This ${field === "phoneNumber" ? "phone number" : "Student ID"} is already registered.`,
@@ -116,7 +113,6 @@ const register = async (req, res) => {
   }
 };
 
-// ── LOGIN ─────────────────────────────────────────────────────────────────────
 const login = async (req, res) => {
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
@@ -145,9 +141,7 @@ const login = async (req, res) => {
       });
     }
 
-    const cleanPhoneNumber = phoneNumber.trim();
-
-    const user = await User.findOne({ phoneNumber: cleanPhoneNumber }).select(
+    const user = await User.findOne({ phoneNumber: phoneNumber.trim() }).select(
       "+password +refreshToken",
     );
 
@@ -187,7 +181,6 @@ const login = async (req, res) => {
   }
 };
 
-// ── LOGOUT ────────────────────────────────────────────────────────────────────
 const logout = async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
@@ -214,7 +207,6 @@ const logout = async (req, res) => {
   }
 };
 
-// ── REFRESH TOKEN ─────────────────────────────────────────────────────────────
 const refreshAccessToken = async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
@@ -254,7 +246,6 @@ const refreshAccessToken = async (req, res) => {
   }
 };
 
-// ── GET ME ────────────────────────────────────────────────────────────────────
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
