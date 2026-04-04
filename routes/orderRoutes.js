@@ -8,12 +8,13 @@ import {
 
 import authMiddleware from "../middleware/authMiddleware.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
+import studentMiddleware from "../middleware/studentMiddleware.js";
 
 const router = express.Router();
 
 // Student routes
-router.post("/", authMiddleware, placeOrder);
-router.get("/my", authMiddleware, getMyOrders);
+router.post("/", authMiddleware, studentMiddleware, placeOrder);
+router.get("/my", authMiddleware, studentMiddleware, getMyOrders);
 
 // Admin routes
 router.get("/", authMiddleware, adminMiddleware, getAllOrders);
